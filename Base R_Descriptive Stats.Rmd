@@ -1,0 +1,170 @@
+---
+title: "Base R Descriptive Stats"
+author: "Kim Julia Fuchs"
+date: "20 3 2020"
+output: word_document
+---
+# libraries
+```{r}
+library(tidyverse)
+```
+# remove objects: rm()
+```{r}
+# remove specific objects by simply listing them 
+# rm(<object1>, <object2> (...))
+```
+# list all variable names in given environment 
+```{r}
+ls()
+```
+# Summary stats
+## summary(x): output Min, 1. Quartile, Median, 3. Quartile und Max
+## mean(, na.rm = F): mean
+## median(, na.rm = F): median
+## var(,na.rm = F: variance
+## sd(,na.rm = F): standard deviation
+## range(,na.rm = F): returns min ([1]) and max ([2]) value of a vector
+
+##  cov(x,y): covariance
+##  cor(x, y = NULL, use = "everything", method = c("pearson", "kendall", "spearman")): correlation coeff.
+  + x: numeric vector, matrix or data frame
+  + w/ 'use' parameter one can handle missing values 
+  + 'everything': NAs will propagate conceptually, i.e. resulting value will be NA whenever there is one NA
+  + 'all obs.': presense of missing observation will result in error
+  + 'complete obs.': casewise deletion of NAs, if no complete cases 'error'
+  + 'na.or.complete': casewise deletion of NAs, if no complete cases 'NA'
+  + 'pairwise.complete.obs'correlation or covariance between each pair of variables is computed (x must be matrix of df then) sing all complete pairs of observations on those variables
+  
+# Vectors: specifics 
+## cumsum(): **Vectorized** cumulative sum
+```{r}
+x <- c(1:3)
+cumsum(x)
+```
+## prod(): Product over elements within vector: 
+* syntax: prod(..., na.rm = FALSE)
+  + numeric, logical or complex vector
+```{r}
+prod(x)
+```
+## diff(): **Vectorized** difference within numeric vector or matrix
+```{r}
+x <- c(1, 1, 2, 6)
+diff(x) # 0 1 4
+```
+# Matrices: specifics
+
+* the following functions - colMeans, colSums, rowMeans and rowSums - are equivalent to apply() with FUN as sum or mean respectively
+* **however, they are a lot faster**
+ 
+## colMeans(): Arithmetic mean of each column
+*syntax (same applies to following functions): colMeans(x, na.rm = FALSE, dims = 1)
+  + x: matrix, array (of more than 2 dim), or numeric df
+  + dims: integer; which dimensions are regarded as ‘rows’ or ‘columns’ to calculate over
+  + na.rm: omitting/no omitting of NAs
+    + note: omitting has the effect that mean may not be calculated over same number of rows or col respectively
+    
+## colSums(): Column-wise sums
+## rowMeans(): Row-wise means
+## rowSums(): Row-wise sums
+```{r}
+d <- data.frame(a = c(1,2,4,4), b = c(2,3,3,4))
+d
+colMeans(d)
+colSums(d)
+rowSums(d)
+rowMeans(d)
+```
+## dim(): Dimensions of matrix: 
+* returns nrow and ncol
+```{r}
+dim(d)
+```
+## nrow(): Number of rows 
+## ncol(): Number of col
+```{r}
+nrow(d)
+ncol(d)
+```
+# Data frames: specifics
+* because dfs are a list of vector of equal lengths, they share properties of both, matrices and lists
+* we therefore, can use functions for matrices and lists also for dataframes
+
+
+# polyroot(): find roots (Nullstellen) of a real or complex polynomial
+```{r}
+# input: 
+# vector of polynomial coefficients in increasing order 
+# e.g. f(x) = x² + x + 1
+polyroot(c(1, 1, 1))
+# note: polyroot outputs complex values by default; to get real values use Re()
+Re(polyroot(c(1,1,1)))
+```
+# uniroot(): find one (!) roots for any function in R
+* as said, uniroot() can only finde one unit root 
+* i.e. if function is not strictly concave/convex 
+* input: function, interval in which to search for uniroot
+```{r}
+eq <- function(x) {
+  x^2 - exp(x)
+}
+
+uniroot(eq)# error: 'interval missing
+uniroot(function(x) x^2 - exp(x)) # error: 'interval missing'
+
+# -> one has to check interval for which to calculate uniroot w/ plot first
+# in the following I experiment a little w/ base R's visualizations
+plot(eq, to = 2, from = -2, type = 'l',main = 'x^2 - exp(x)', ylab = 'f(x)')
+# highlight a specific value by adding layer points()
+points(x = c(uniroot(eq, lower = -1, upper = 2)$root),y = c(0), pch = 16, cex =2, col = 'green') 
+# pch: plotting ‘character’, i.e., symbol to use. This can either be a single character or an integer code for one of a set of graphics symbols. The full set of S symbols is available with pch = 0:18, see the examples below. (NB: R uses circles instead of the octagons used in S.)
+
+# add a line with certain values using abline()
+abline(h = 0, col = 'red') # h = horizontal
+abline(v= uniroot(eq, lower = -1, upper = 2)$root, col = 'blue') # v= vertical
+
+# alternative: curve
+curve(eq, to = 2, from = -2, type = 'l',main = 'x^2 - exp(x)', ylab = 'f(x)')
+```
+
+# Derivatives: D()
+* syntax: D(expr, name)
+* expr will be specific function
+* name will be variable to derive by (df(x)/dx)
+
+```{r}
+D(quote(x^2 +3), 'x')
+# Thanks to the quote() function, it keeps the expression unevaluated so that the symbols
+# are directly accessible as they are written
+```
+# Integration: integrate()
+* syntax: D(expr, lower bound, upper bound)
+```{r}
+integrate(function (x) cos (x), 0, pi/2)
+```
+# Sampling from a vector or list: sample()
+*syntax: sample(x, size, replace = FALSE, prob = NULL)
+* x = vector or list 
+* size = number of items to choose  
+* replace = should sampling be with replacement?
+* prob = argument can be used to give a vector of weights for obtaining the elements of the vector being sampled. They need not sum to one
+ + if replace is false, these probabilities are applied sequentially, i.e. prob. of choosing next item is proportional to weights amongst the remaining items 
+
+# Random distribution: numeric simulations
+* numeric simulation, i.e. drawing a sample from a random distribution 
+* run ?Distributions to see a full list of supported distributions 
+```{r}
+# continuous uniform distribution: runif(n [numbers to be randomly drawn], min =  0 <or other lower bound>, max = 1 <or any other upper bound>)
+?Distributions
+runif(10, min = 0, max = 10)
+plot(runif(1000, min = 0, max = 1))
+hist(runif(1000, min=0, max =1))
+
+# normal distribution: 
+# rnorm(n [numbers to be randomly drawn], mean = 0 <or other mean value>, sd = 1 <or other standard deviation>)
+rnorm(1000, mean = 0, sd =1)
+plot(rnorm(1000, mean = 0, sd =1))
+hist(rnorm(1000, mean = 0, sd = 1))
+plot(dnorm(x = c(-10:10), mean = 0, sd = 1))
+```
+
